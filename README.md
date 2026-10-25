@@ -8,9 +8,9 @@ It is a **website and an installable app (PWA)** built with one stack: Next.js, 
 
 Click any screenshot to open the full-size image.
 
-| Analyze | Report | History |
+| Analyze | Current Report | History |
 |---|---|---|
-| <a href="./public/screenshots/analyze.png"><img src="./public/screenshots/analyze.png" alt="ResumeLens Analyze page" width="320"></a> | <a href="./public/screenshots/report.png"><img src="./public/screenshots/report.png" alt="ResumeLens report page" width="320"></a> | <a href="./public/screenshots/history.png"><img src="./public/screenshots/history.png" alt="ResumeLens History page" width="320"></a> |
+| <a href="./public/screenshots/analyze.png"><img src="./public/screenshots/analyze.png" alt="ResumeLens Analyze page" width="320"></a> | <a href="./public/screenshots/report.png"><img src="./public/screenshots/report.png" alt="ResumeLens current report overview" width="320"></a> | <a href="./public/screenshots/history.png"><img src="./public/screenshots/history.png" alt="ResumeLens History page" width="320"></a> |
 
 ---
 
