@@ -41,10 +41,11 @@ ${String(context?.resume || '(not available)').slice(0, 4000)}
 JOB DESCRIPTION EXCERPT:
 ${String(context?.jd || '(none provided)').slice(0, 2000)}`;
 
-    const reply = await llm({ system, messages: msgs, maxTokens: 900 });
-    if (!reply) return NextResponse.json({ error: 'The AI service returned an error. Check your API key, model name and free-tier limits.' }, { status: 502 });
+    const reply = await llm({ system, messages: msgs, maxTokens: 900, maxAttempts: 1, requestTimeoutMs: 6_000 });
+    if (!reply) return NextResponse.json({ error: 'The AI coach could not get a response from Gemini. The service may be busy; try again shortly. If this continues, check the API key and model configuration.' }, { status: 502 });
     return NextResponse.json({ reply });
-  } catch {
+  } catch (error) {
+    console.error('[chat] request failed', error);
     return NextResponse.json({ error: 'Something went wrong. Try again.' }, { status: 500 });
   }
 }

@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveReport } from '@/lib/storage';
 
-const STEPS = ['Reading your resume', 'Matching keywords', 'Scoring sections and bullets', 'Writing improvements'];
+const STEPS = ['Reading your resume', 'Matching keywords', 'Scoring sections and bullets', 'Preparing optional AI improvements'];
 
 export default function Home() {
   const router = useRouter();
@@ -35,13 +35,16 @@ export default function Home() {
       const fd = new FormData();
       if (mode === 'pdf') fd.append('file', file); else fd.append('resumeText', text);
       fd.append('jobDescription', jd);
-      const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+      const res = await fetch('/api/analyze', { method: 'POST', body: fd, signal: AbortSignal.timeout(35_000) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong.');
       saveReport(data);
       router.push(`/report?id=${data.id}`);
     } catch (err) {
-      setError(err.message); setBusy(false);
+      setError(err.name === 'TimeoutError' || err.name === 'AbortError'
+        ? 'Analysis took too long. Please try again.'
+        : err.message);
+      setBusy(false);
     } finally { clearInterval(timer); }
   };
 
@@ -75,12 +78,13 @@ export default function Home() {
           <textarea className="area" rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste your resume text here" aria-label="Resume text" />
         )}
 
-        <label className="lbl" htmlFor="jd">Job description <span className="muted">(recommended)</span></label>
+        <label className="lbl" htmlFor="jd">Job description <span className="muted">(needed for keyword matching)</span></label>
         <textarea id="jd" className="area" rows={6} value={jd} onChange={(e) => setJd(e.target.value)} placeholder="Paste the job posting to see keyword matches and gaps" />
 
         {error && <div className="err" role="alert">{error}</div>}
-        <button className="btn big" disabled={busy}>{busy ? STEPS[step] + '…' : 'Analyze my resume'}</button>
-        {busy && <div className="prog"><i style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} /></div>}
+        <button className="btn big" aria-busy={busy} disabled={busy}>{busy ? STEPS[step] + '…' : 'Analyze my resume'}</button>
+        {busy && step === STEPS.length - 1 && <p className="muted" role="status">Optional AI suggestions can take up to 25 seconds. Resume scoring will still complete if AI is unavailable.</p>}
+        {busy && <div className="prog"><i style={{ width: `${Math.min(90, ((step + 1) / STEPS.length) * 100)}%` }} /></div>}
       </form>
     </div>
   );

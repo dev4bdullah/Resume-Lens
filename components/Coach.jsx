@@ -8,6 +8,7 @@ const GROUPS = [
   { title: 'Practice', items: ['Start a mock interview for this job', 'Write a short cover letter opening', 'How should I answer "Tell me about yourself"?'] },
 ];
 const MAX_USER_MSGS = 25;
+const REQUEST_TIMEOUT_MS = 16_000;
 
 export default function Coach({ report: r }) {
   const [enabled, setEnabled] = useState(null);
@@ -35,12 +36,37 @@ export default function Coach({ report: r }) {
     if (used >= MAX_USER_MSGS) return setError('Message limit reached for this report. Clear the chat to start again.');
     const next = [...msgs, { role: 'user', content }];
     setMsgs(next); setInput(''); setError(''); setBusy(true);
+    const controller = new AbortController();
+    let timeoutId;
     try {
-      const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: next, report: ctx, context: r.context }) });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Request failed.');
-      setMsgs([...next, { role: 'assistant', content: data.reply }]);
-    } catch (e) { setError(e.message); } finally { setBusy(false); }
+      const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          controller.abort();
+          reject(new Error('The coach took too long to respond. Please try again.'));
+        }, REQUEST_TIMEOUT_MS);
+      });
+      const request = fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ messages: next, report: ctx, context: r.context }),
+        signal: controller.signal,
+      }).then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed.');
+        return data.reply;
+      });
+      const reply = await Promise.race([request, timeout]);
+      setMsgs([...next, { role: 'assistant', content: reply }]);
+    } catch (e) {
+      setMsgs(msgs);
+      setInput(content);
+      setError(e.name === 'AbortError'
+        ? 'The coach took too long to respond. Please try again.'
+        : e.message || 'The coach could not respond. Please try again.');
+    } finally {
+      clearTimeout(timeoutId);
+      setBusy(false);
+    }
   };
 
   if (enabled === null) return <p className="muted">Loading coach…</p>;
@@ -55,7 +81,7 @@ export default function Coach({ report: r }) {
     <section className="card coach">
       <div className="row">
         <span className="muted">{r.context ? 'Knows your report, a trimmed copy of your resume, and the job description.' : 'Knows your report only. Re-analyze to give it your resume text.'}</span>
-        {msgs.length > 0 && <button className="btn ghost sm" onClick={() => { setMsgs([]); setError(''); }}>Clear chat</button>}
+        {msgs.length > 0 && <button className="btn ghost sm" disabled={busy} onClick={() => { setMsgs([]); setError(''); }}>Clear chat</button>}
       </div>
       <div className="chat" aria-live="polite">
         {!msgs.length && (
@@ -82,7 +108,7 @@ export default function Coach({ report: r }) {
       {error && <div className="err" role="alert">{error}</div>}
       <form className="composer" onSubmit={(e) => { e.preventDefault(); send(input); }}>
         <input value={input} maxLength={500} onChange={(e) => setInput(e.target.value)} placeholder="Ask the coach…" aria-label="Message to the coach" />
-        <button className="btn" disabled={busy || !input.trim()}>Send</button>
+        <button className="btn" aria-busy={busy} disabled={busy || !input.trim()}>{busy ? 'Sending…' : 'Send'}</button>
       </form>
     </section>
   );

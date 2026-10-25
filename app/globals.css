@@ -22,8 +22,9 @@ a{color:inherit}
 .foot{text-align:center;color:var(--mut);font-size:.85rem;padding:2rem 1rem;animation:fade-in .7s .25s both}
 .card{background:var(--panel);border:1px solid var(--bd);border-radius:var(--r);padding:1.25rem;animation:fade-up .45s ease-out both;transition:box-shadow .2s,transform .2s}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;background:var(--lens);color:#ffffff;border:0;border-radius:10px;padding:.65rem 1.1rem;font:600 .95rem var(--sans);cursor:pointer;text-decoration:none;transition:transform .18s,filter .18s,box-shadow .18s}
-.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.7;cursor:progress}
-.btn:disabled::after{width:.85em;height:.85em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;content:"";animation:spin .7s linear infinite}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.7;cursor:not-allowed}
+.btn[aria-busy="true"]{cursor:progress}
+.btn[aria-busy="true"]::after{width:.85em;height:.85em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;content:"";animation:spin .7s linear infinite}
 .btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(17,17,17,.14)}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn.ghost:hover{background:var(--panel2)}
 .btn.sm{padding:.4rem .75rem;font-size:.85rem}.btn.big{width:100%;padding:.9rem;font-size:1.02rem;margin-top:.9rem}

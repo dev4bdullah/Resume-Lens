@@ -3,14 +3,16 @@ import { useState } from 'react';
 import { ScoreGauge, Bar, Chips, BulletDiff, CopyBtn, verdict } from './Ui';
 import Coach from './Coach';
 import { downloadReportPdf } from '@/lib/downloadReportPdf';
+import { extractResumeKeywords } from '@/lib/scoreResume';
 
-const TABS = ['Overview', 'Keywords', 'Bullets', 'AI tools', 'Coach'];
+const TABS = ['Overview', 'Keywords', 'Bullets', 'AI Coach'];
 
 export default function ReportView({ report: r }) {
   const [tab, setTab] = useState('Overview');
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState('');
   const tabs = TABS;
+  const resumeKeywords = r.resumeKeywords || extractResumeKeywords(r.context?.resume || '');
   const summary = () => `ResumeLens report: ${r.score}/100 (${verdict(r.score)})\nMatched: ${r.matched.join(', ') || '-'}\nMissing: ${r.missing.join(', ') || '-'}\nFix first: ${r.checks.filter((c) => !c.pass).map((c) => c.tip).join(' ') || 'Nothing urgent.'}`;
   const savePdf = async () => {
     setPdfBusy(true);
@@ -34,7 +36,7 @@ export default function ReportView({ report: r }) {
           <p className="muted">{new Date(r.createdAt).toLocaleString()} · {r.hasJob ? 'Scored against a job description' : 'General ATS score (no job description)'}</p>
           <div className="actions no-print">
             <CopyBtn text={summary} label="Copy summary" />
-            <button className="btn ghost sm" onClick={savePdf} disabled={pdfBusy}>{pdfBusy ? 'Preparing PDF…' : 'Save as PDF'}</button>
+            <button className="btn ghost sm" onClick={savePdf} aria-busy={pdfBusy} disabled={pdfBusy}>{pdfBusy ? 'Preparing PDF…' : 'Save as PDF'}</button>
           </div>
           {pdfError && <p className="err" role="alert">{pdfError}</p>}
           <div className="bars">
@@ -72,15 +74,10 @@ export default function ReportView({ report: r }) {
       )}
 
       {tab === 'Keywords' && (
-        <div className="grid2">
-          <section className="card"><h2>Matched ({r.matched.length})</h2><Chips items={r.matched} kind="hit" /></section>
-          <section className="card">
-            <h2>Missing ({r.missing.length})</h2>
-            <Chips items={r.missing} kind="miss" />
-            {r.missing.length > 0 && <p className="muted">Add these only where they are true. Put them in your Skills section and in bullets that show real use.</p>}
-            {!r.hasJob && <p className="muted">Paste a job description on the Analyze page to see keyword gaps.</p>}
-          </section>
-        </div>
+        <section className="card">
+          <h2>CV keywords ({resumeKeywords.length})</h2>
+          <Chips items={resumeKeywords} kind="hit" />
+        </section>
       )}
 
       {tab === 'Bullets' && (
@@ -90,16 +87,8 @@ export default function ReportView({ report: r }) {
         </section>
       )}
 
-      {tab === 'Coach' && <Coach report={r} />}
+      {tab === 'AI Coach' && <Coach report={r} />}
 
-      {tab === 'AI tools' && (
-        <div className="stack">
-          {r.ai.source === 'local' && <div className="banner">Template mode. Add GEMINI_API_KEY (free) to .env.local for AI-written rewrites, summary and cover letter.</div>}
-          <section className="card"><div className="row"><h2>Professional summary</h2><CopyBtn text={r.ai.summary} /></div><p>{r.ai.summary}</p></section>
-          {r.ai.coverLetter && <section className="card"><div className="row"><h2>Cover letter draft</h2><CopyBtn text={r.ai.coverLetter} /></div><p className="pre">{r.ai.coverLetter}</p></section>}
-          <section className="card"><h2>Likely interview questions</h2><ol className="qs">{r.ai.interviewQuestions.map((q, i) => <li key={i}>{q}</li>)}</ol></section>
-        </div>
-      )}
     </div>
   );
 }

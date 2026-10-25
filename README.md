@@ -6,16 +6,11 @@ It is a **website and an installable app (PWA)** built with one stack: Next.js, 
 
 ## Screenshots
 
-Desktop screenshots of the app's main pages:
+Click any screenshot to open the full-size image.
 
-### Analyze
-![ResumeLens Analyze page](./public/screenshots/analyze.png)
-
-### Report
-![ResumeLens report page](./public/screenshots/report.png)
-
-### History
-![ResumeLens history page](./public/screenshots/history.png)
+| Analyze | Report | History |
+|---|---|---|
+| <a href="./public/screenshots/analyze.png"><img src="./public/screenshots/analyze.png" alt="ResumeLens Analyze page" width="320"></a> | <a href="./public/screenshots/report.png"><img src="./public/screenshots/report.png" alt="ResumeLens report page" width="320"></a> | <a href="./public/screenshots/history.png"><img src="./public/screenshots/history.png" alt="ResumeLens History page" width="320"></a> |
 
 ---
 
@@ -153,7 +148,7 @@ resumelens/
     api/chat/route.js     Coach chat
   components/
     Ui.jsx                Navbar, ScoreGauge, Bar, Chips, BulletDiff, CopyBtn, install button
-    ReportView.jsx        Report tabs: Overview, Keywords, Bullets, AI tools, Coach
+    ReportView.jsx        Report tabs: Overview, Keywords, Bullets, AI Coach
     Coach.jsx             Coach chat screen
     Pwa.jsx               Service worker registration
   lib/
